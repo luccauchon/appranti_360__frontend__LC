@@ -86,7 +86,7 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
   final String _patronImageDisplayed = '${baseUrl}posteinformatique/get_image?imgid=19751222&magicnumber=1';
 
   // Patron du url pour demander une inférence
-  final String _patronAskForInference = '${baseUrl}posteinformatique/get_image?imgid=19751222&magicnumber=1';
+  final String _patronAskForInference = '${baseUrl}posteinformatique/get_image?imgid=19751222&magicnumber=1&modeleid=123';
 
   // Patron du url pour demander le nom du fichier de l'image
   final String _patronAskForImageName = '${baseUrl}posteinformatique/get_image_name?imgid=19751222&magicnumber=1';
@@ -131,6 +131,9 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
   final List<String> defauts = ['Corrosion de l\'armature', 'Fissures polygonales', 'Désagrégation'];
   // Define a variable to store the selected item
   String defautSelectionne = 'Corrosion de l\'armature';
+
+  // Sélection du model
+  String selectedModel = 'Modèle 1'; // Initial selected value
 
   @override
   void initState() {
@@ -193,7 +196,7 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
     });
   }
 
-  Future<void> _detectionAnomalies2(BuildContext context) async {
+  Future<void> _detectionAnomalies2(BuildContext context, String selectedModel) async {
     try {
       // default
       UIBlock.block(context);
@@ -202,6 +205,7 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
       _generationMaskComplete = false;
       // Demande d'inférence
       String modifiedString = _patronAskForInference.replaceFirst("imgid=19751222", "imgid=${_sliderValue.toInt()}");
+      modifiedString = modifiedString.replaceFirst('modeleid=123', 'modeleid=$selectedModel');
       modifiedString = modifiedString.replaceFirst('get_image', 'do_inference_for_image');
       _magicNumber = _magicNumber + 1;
       modifiedString = modifiedString.replaceFirst('magicnumber=1', 'magicnumber=$_magicNumber');
@@ -271,6 +275,7 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
     const double aHeight = 600;
     const double aWidth = 800;
     bool _isLoading = true;
+
     // _readCfg();
     return LayoutBuilder(builder: (context, constraints) {
       //final double maxWidth = constraints.maxWidth - 150; // Adjust for the width of other widgets
@@ -307,8 +312,7 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
                         maxScale: 10.0,
                         child: Stack(
                           children: [
-                            Center(child: Image.network(_imageDisplayed,
-                            )),
+                            Center(child: Image.network(_imageDisplayed,)),
                             if (_afficherMask)
                               Center(
                                 child: ColorFiltered(
@@ -407,7 +411,7 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
           ),
           Row(
             children: [
-              Padding(padding: const EdgeInsets.all(8.0), child: ElevatedButton(onPressed: () => _detectionAnomalies2(context), child: const Text("Détection d'anomalies"))),
+              Padding(padding: const EdgeInsets.all(8.0), child: ElevatedButton(onPressed: () => _detectionAnomalies2(context, selectedModel), child: const Text("Détection d'anomalies"))),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
@@ -429,6 +433,24 @@ class _Appranti360PosteInformatiquePageState extends State<Appranti360PosteInfor
                     ],
                   ),
                 ),
+              ),
+              Padding(padding: const EdgeInsets.all(8.0),
+                      child: DropdownButton<String>(
+                        value: selectedModel,
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              selectedModel = newValue;
+                            });
+                          }
+                        },
+                        items: <String>['Modèle 1', 'Option 2', 'Option 3', 'Option 4'].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                    ),
               ),
             ],
           ),
